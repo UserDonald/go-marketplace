@@ -23,6 +23,7 @@ services:
       - "5431:5432"
     volumes:
       - account_data:/var/lib/postgresql/data
+      - ./account/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -42,10 +43,13 @@ services:
       - "8082:8080"
 
   catalog_db:
-    image: elasticsearch:7.17.9
+    build:
+      context: ./catalog/db
+      dockerfile: Dockerfile
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
     ports:
       - "9200:9200"
     volumes:
@@ -84,6 +88,7 @@ services:
       - "5433:5432"
     volumes:
       - order_data:/var/lib/postgresql/data
+      - ./order/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
