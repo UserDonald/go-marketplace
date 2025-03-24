@@ -145,21 +145,19 @@ apt-get install -y protobuf-compiler
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
+# Add Go bin to PATH (if not already in your profile)
+export PATH="$PATH:$(go env GOPATH)/bin"
+
 # Generate protobuf files for each service
 # Account Service
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    account/pb/*.proto
+    account/pb/account.proto
 
 # Catalog Service
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    catalog/pb/*.proto
-
-# Order Service
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    order/pb/*.proto
+    catalog/pb/catalog.proto
 ```
 
 ## Troubleshooting
