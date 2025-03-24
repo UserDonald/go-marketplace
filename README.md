@@ -120,6 +120,48 @@ go-marketplace/
 - CI/CD pipeline
 - Kubernetes deployment
 
+## Development Setup
+
+### Dependencies
+```bash
+# Download dependencies
+go mod download
+
+# Vendor dependencies (optional but recommended)
+go mod vendor
+```
+
+### Generate Protobuf Files
+```bash
+# Install protoc compiler (if not already installed)
+# For macOS:
+brew install protobuf
+# For Linux:
+apt-get install -y protobuf-compiler
+# For Windows:
+# Download from https://github.com/protocolbuffers/protobuf/releases
+
+# Install protoc-gen-go and protoc-gen-go-grpc
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+# Generate protobuf files for each service
+# Account Service
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    account/pb/*.proto
+
+# Catalog Service
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    catalog/pb/*.proto
+
+# Order Service
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    order/pb/*.proto
+```
+
 ## Troubleshooting
 
 ### Common Issues
