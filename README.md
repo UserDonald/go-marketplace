@@ -27,6 +27,9 @@ A modern, production-grade marketplace platform built with microservices archite
 - google.golang.org/grpc
 - github.com/lib/pq
 - github.com/olivere/elastic/v7
+- github.com/segmentio/ksuid
+- github.com/kelseyhightower/envconfig
+- github.com/tinrab/retry
 
 ## Quick Setup
 
@@ -42,13 +45,13 @@ git clone https://github.com/donaldnash/go-marketplace.git
 cd go-marketplace
 
 # Start all services
-docker-compose up --build
+docker compose up --build
 
 # Access GraphQL Playground
 open http://localhost:8080/playground
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 ### Access Points
@@ -66,18 +69,28 @@ go-marketplace/
 ├── account/          # User account management
 │   ├── cmd/         # Service entry point
 │   ├── pb/          # Protocol buffer definitions
-│   └── client.go    # gRPC client implementation
+│   ├── client.go    # gRPC client implementation
+│   ├── server.go    # gRPC server implementation
+│   ├── service.go   # Business logic
+│   └── repository.go # Data access layer
 ├── catalog/         # Product catalog service
 │   ├── cmd/        # Service entry point
 │   ├── pb/         # Protocol buffer definitions
-│   └── client.go   # gRPC client implementation
+│   ├── client.go   # gRPC client implementation
+│   ├── server.go   # gRPC server implementation
+│   ├── service.go  # Business logic
+│   └── repository.go # Data access layer
 ├── order/          # Order processing service
 │   ├── cmd/        # Service entry point
 │   ├── pb/         # Protocol buffer definitions
-│   └── client.go   # gRPC client implementation
+│   ├── client.go   # gRPC client implementation
+│   ├── server.go   # gRPC server implementation
+│   ├── service.go  # Business logic
+│   └── repository.go # Data access layer
 ├── graphql/        # API gateway
-│   ├── schema.graphql  # GraphQL schema
-│   └── resolvers/     # Query/Mutation implementations
+│   ├── schema/     # GraphQL schema
+│   ├── generated/  # Generated GraphQL code
+│   └── resolvers/  # Query/Mutation implementations
 ├── docs/           # Documentation
 └── docker-compose.yaml
 ```
@@ -88,77 +101,82 @@ go-marketplace/
 - Account creation and management
 - PostgreSQL for data persistence
 - gRPC API for service communication
-- KSUID for ID generation
+- KSUID for unique ID generation
 - Clean architecture with repository pattern
-- Comprehensive input validation
-- Graceful error handling and recovery
+- Input validation for account creation
+- Error handling with detailed messages
+- Graceful shutdown with resource cleanup
 
 ### Catalog Service (Port 8082)
 - Product management with Elasticsearch
-- Full-text search functionality
-- Multi-match search across product fields
-- Pagination support with limits
-- Input validation and error handling
-- gRPC API for service communication
+- Full-text search with multi-match queries
+- Product creation and retrieval
+- Pagination support (max 100 items)
+- Efficient bulk product retrieval
+- Error handling with detailed messages
 - Graceful shutdown with resource cleanup
 
 ### Order Service (Port 8083)
 - Order processing and management
 - PostgreSQL for order data
 - Integration with Account and Catalog services
-- Order history tracking
-- Comprehensive validation for orders
-- Product quantity and price validation
-- gRPC API for service communication
-- Graceful error handling
+- Transaction support for order creation
+- Product validation and price calculation
+- Order history tracking by account
+- Error handling with detailed messages
+- Graceful shutdown with resource cleanup
 
 ### GraphQL Gateway (Port 8080)
 - Unified API entry point
 - Interactive GraphQL Playground
-- Service aggregation layer
-- CORS support with secure defaults
-- Comprehensive error handling
-- Input validation
-- Detailed error messages
-- Graceful shutdown
-- Request timeouts
+- Service aggregation and orchestration
+- Request timeout handling (3s default)
+- Detailed error messages with context
+- Input validation and sanitization
+- Graceful shutdown with resource cleanup
 
 ## Development Status
 
 ### Completed
-- ✅ Basic project architecture
-- ✅ Docker configuration with health checks
-- ✅ Database schemas and setup
+- ✅ Basic project architecture and setup
+- ✅ Docker configuration
+- ✅ Database schemas and initialization
 - ✅ gRPC service communication
 - ✅ GraphQL gateway implementation
-- ✅ Account service implementation
+- ✅ Account service CRUD operations
 - ✅ Catalog service with Elasticsearch
-- ✅ Order service implementation
-- ✅ Service integration
-- ✅ Comprehensive error handling
+- ✅ Order service with transactions
+- ✅ Service integration and testing
+- ✅ Error handling
   - Input validation
   - Detailed error messages
-  - Graceful shutdown
+  - Transaction management
   - Resource cleanup
   - Context handling
 - ✅ Structured logging
-  - File and line information
   - Request context
   - Error details
+  - Service operations
 - ✅ Documentation
+  - API reference
+  - GraphQL playground guide
+  - Architecture overview
 
 ### In Progress
-- 🔄 Service monitoring implementation
-- 🔄 Performance optimization
-- 🔄 Integration testing
+- 🔄 Health check implementation
 - 🔄 Service metrics collection
+- 🔄 Integration testing
+- 🔄 API documentation updates
 
-### Coming Soon
+### Planned
+- 📅 Product stock management
 - 📅 Caching layer
+- 📅 Authentication and authorization
+- 📅 Rate limiting
+- 📅 Service monitoring
+- 📅 Performance optimization
 - 📅 Load balancing
-- 📅 Service mesh integration
-- 📅 Kubernetes deployment configuration
-- 📅 Advanced monitoring and alerting
+- 📅 Kubernetes deployment
 
 ## Development Setup
 
@@ -196,24 +214,29 @@ protoc --go_out=. --go_opt=paths=source_relative \
 ### Common Issues
 - **Port Conflicts**: Ensure ports 8080-8083 are available
 - **Database Connections**: Check service URLs in docker-compose.yaml
-- **Service Logs**: Use `docker-compose logs -f [service]` for debugging
+- **Service Logs**: Use `docker compose logs -f [service]` for debugging
+- **Protobuf Generation**: Ensure protoc and required plugins are in PATH
 
 ### Database Access
 - Account DB:
-  - Host: localhost:5431
+  - Host: localhost:5432
   - Database: account
   - Username: postgres
   - Password: postgres
 
 - Order DB:
-  - Host: localhost:5433
+  - Host: localhost:5432
   - Database: order
   - Username: postgres
   - Password: postgres
 
 - Catalog DB (Elasticsearch):
   - Host: localhost:9200
+  - No authentication required
 
 ## Documentation
 
-For detailed information about the API, testing procedures, and architecture, please refer to the [documentation](./docs/README.md).
+For detailed information about the API, testing procedures, and architecture, please refer to:
+- [API Reference](./docs/api-reference/README.md)
+- [Architecture Overview](./docs/architecture/README.md)
+- [GraphQL Playground Guide](./docs/graphql-playground/README.md)
