@@ -173,6 +173,16 @@ protoc --go_out=. --go_opt=paths=source_relative \
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     catalog/pb/catalog.proto
+
+# Order Service
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    order/pb/order.proto
+
+# Or generate all at once
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    account/pb/account.proto catalog/pb/catalog.proto order/pb/order.proto
 ```
 
 ## Troubleshooting
