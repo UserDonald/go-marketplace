@@ -1,8 +1,28 @@
+version: "3.9"
+
 services:
   account:
-  catalog:
-  order:
-  graphql:
+    build:
+      context: .
+      dockerfile: account/app.dockerfile
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@account_db:5432/postgres?sslmode=disable
+    depends_on:
+      - account_db
+    ports:
+      - "8080:8080"
+
   account_db:
-  catalog_db:
-  order_db:
+    build:
+      context: ./account
+      dockerfile: db.dockerfile
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+
+  # catalog:
+  # order:
+  # graphql:
+  # catalog_db:
+  # order_db:
