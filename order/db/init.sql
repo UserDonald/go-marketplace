@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE IF NOT EXISTS order_products (
     order_id VARCHAR NOT NULL,
     product_id VARCHAR NOT NULL,
     quantity INTEGER NOT NULL,
