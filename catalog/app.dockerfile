@@ -7,7 +7,8 @@ COPY catalog catalog
 RUN go build -o /go/bin/app ./catalog/cmd/catalog
 
 FROM alpine:3.19
+RUN apk --no-cache add wget
 WORKDIR /usr/bin
 COPY --from=build /go/bin .
-EXPOSE 8080
+EXPOSE 8082
 CMD ["app"]

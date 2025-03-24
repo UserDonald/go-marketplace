@@ -10,6 +10,7 @@ COPY graphql graphql
 RUN go build -o /go/bin/app ./graphql
 
 FROM alpine:3.19
+RUN apk --no-cache add wget
 WORKDIR /usr/bin
 COPY --from=build /go/bin .
 EXPOSE 8080
