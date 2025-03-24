@@ -13,29 +13,78 @@ This guide will help you test the Go Marketplace API using the GraphQL Playgroun
 
 ## Testing Queries
 
-### List All Accounts
+### List All Products
 ```graphql
+# Get all products
 query {
-  accounts {
+  products {
     id
     name
-    orders {
-      id
-      totalPrice
-      createdAt
-    }
+    description
+    price
+  }
+}
+```
+
+Success Response:
+```json
+{
+  "data": {
+    "products": [
+      {
+        "id": "product1",
+        "name": "iPhone 15",
+        "description": "Latest iPhone model",
+        "price": 999.99
+      }
+    ]
+  }
+}
+```
+
+No Products Response:
+```json
+{
+  "data": {
+    "products": []
   }
 }
 ```
 
 ### Search Products
 ```graphql
+# Search by text
 query {
   products(query: "phone") {
     id
     name
     description
     price
+  }
+}
+```
+
+Success Response:
+```json
+{
+  "data": {
+    "products": [
+      {
+        "id": "product1",
+        "name": "iPhone 15",
+        "description": "Latest iPhone model",
+        "price": 999.99
+      }
+    ]
+  }
+}
+```
+
+No Matches Response:
+```json
+{
+  "data": {
+    "products": []
   }
 }
 ```
@@ -52,6 +101,31 @@ query {
 }
 ```
 
+Success Response:
+```json
+{
+  "data": {
+    "products": [
+      {
+        "id": "your_product_id",
+        "name": "iPhone 15",
+        "description": "Latest iPhone model",
+        "price": 999.99
+      }
+    ]
+  }
+}
+```
+
+Product Not Found Response:
+```json
+{
+  "data": {
+    "products": []
+  }
+}
+```
+
 ### Get Multiple Products by IDs
 ```graphql
 query {
@@ -60,6 +134,83 @@ query {
     name
     description
     price
+  }
+}
+```
+
+Success Response:
+```json
+{
+  "data": {
+    "products": [
+      {
+        "id": "id1",
+        "name": "iPhone 15",
+        "description": "Latest iPhone model",
+        "price": 999.99
+      },
+      {
+        "id": "id2",
+        "name": "Samsung Galaxy S24",
+        "description": "Latest Samsung phone",
+        "price": 899.99
+      }
+    ]
+  }
+}
+```
+
+Some Products Not Found Response:
+```json
+{
+  "data": {
+    "products": [
+      {
+        "id": "id1",
+        "name": "iPhone 15",
+        "description": "Latest iPhone model",
+        "price": 999.99
+      }
+    ]
+  }
+}
+```
+
+### List All Accounts
+```graphql
+query {
+  accounts {
+    id
+    name
+    orders {
+      id
+      totalPrice
+      createdAt
+    }
+  }
+}
+```
+
+Success Response:
+```json
+{
+  "data": {
+    "accounts": [
+      {
+        "id": "account1",
+        "name": "John Doe",
+        "orders": []
+      }
+    ]
+  }
+}
+```
+
+No Accounts Response:
+```json
+{
+  "data": {
+    "accounts": []
   }
 }
 ```
@@ -78,6 +229,33 @@ mutation {
 }
 ```
 
+Success Response:
+```json
+{
+  "data": {
+    "createAccount": {
+      "id": "account1",
+      "name": "John Doe"
+    }
+  }
+}
+```
+
+Invalid Input Response:
+```json
+{
+  "errors": [
+    {
+      "message": "name is required",
+      "path": ["createAccount"]
+    }
+  ],
+  "data": {
+    "createAccount": null
+  }
+}
+```
+
 ### Create Product
 ```graphql
 mutation {
@@ -90,6 +268,49 @@ mutation {
     name
     description
     price
+  }
+}
+```
+
+Success Response:
+```json
+{
+  "data": {
+    "createProduct": {
+      "id": "product1",
+      "name": "iPhone 15",
+      "description": "Latest iPhone model",
+      "price": 999.99
+    }
+  }
+}
+```
+
+Invalid Input Responses:
+```json
+{
+  "errors": [
+    {
+      "message": "price must be greater than 0",
+      "path": ["createProduct"]
+    }
+  ],
+  "data": {
+    "createProduct": null
+  }
+}
+```
+
+```json
+{
+  "errors": [
+    {
+      "message": "name is required",
+      "path": ["createProduct"]
+    }
+  ],
+  "data": {
+    "createProduct": null
   }
 }
 ```
@@ -123,162 +344,146 @@ mutation {
 }
 ```
 
-## Example Testing Scenarios
-
-### 1. Complete Order Flow
-1. Create an account
-2. Create some products
-3. Create an order with the products
-4. Query the account to verify the order appears
-
-```graphql
-# 1. Create Account
-mutation {
-  createAccount(account: { name: "Test User" }) {
-    id
-    name
-  }
-}
-
-# 2. Create Products
-mutation {
-  product1: createProduct(product: {
-    name: "Test Product 1"
-    description: "First test product"
-    price: 29.99
-  }) {
-    id
-  }
-  
-  product2: createProduct(product: {
-    name: "Test Product 2"
-    description: "Second test product"
-    price: 39.99
-  }) {
-    id
-  }
-}
-
-# 3. Create Order
-mutation {
-  createOrder(order: {
-    accountId: "account_id_from_step_1"
-    products: [
-      { id: "product_id_1_from_step_2", quantity: 2 },
-      { id: "product_id_2_from_step_2", quantity: 1 }
-    ]
-  }) {
-    id
-    totalPrice
-    products {
-      name
-      price
-      quantity
-    }
-  }
-}
-
-# 4. Verify Order in Account
-query {
-  accounts(id: "account_id_from_step_1") {
-    name
-    orders {
-      id
-      totalPrice
-      products {
-        name
-        price
-        quantity
-      }
+Success Response:
+```json
+{
+  "data": {
+    "createOrder": {
+      "id": "order1",
+      "totalPrice": 2899.97,
+      "createdAt": "2024-02-20T10:00:00Z",
+      "products": [
+        {
+          "id": "product_id_1",
+          "name": "iPhone 15",
+          "price": 999.99,
+          "quantity": 2
+        },
+        {
+          "id": "product_id_2",
+          "name": "Samsung Galaxy S24",
+          "price": 899.99,
+          "quantity": 1
+        }
+      ]
     }
   }
 }
 ```
 
-### 2. Product Search and Filtering
-1. Create multiple products
-2. Test search functionality
-3. Test pagination
+Error Responses:
 
-```graphql
-# 1. Create Multiple Products
-mutation {
-  phone1: createProduct(product: {
-    name: "iPhone 15"
-    description: "Latest iPhone model"
-    price: 999.99
-  }) {
-    id
-  }
-  
-  phone2: createProduct(product: {
-    name: "Samsung Galaxy S24"
-    description: "Latest Samsung phone"
-    price: 899.99
-  }) {
-    id
-  }
-  
-  laptop: createProduct(product: {
-    name: "MacBook Pro"
-    description: "Powerful laptop"
-    price: 1499.99
-  }) {
-    id
-  }
-}
-
-# 2. Search Products
-query {
-  phones: products(query: "phone") {
-    name
-    description
-    price
-  }
-  
-  samsung: products(query: "samsung") {
-    name
-    description
-    price
-  }
-}
-
-# 3. Test Pagination
-query {
-  firstPage: products(pagination: { skip: 0, take: 2 }) {
-    name
-    price
-  }
-  
-  secondPage: products(pagination: { skip: 2, take: 2 }) {
-    name
-    price
-  }
-}
-```
-
-## Error Handling
-
-The API returns appropriate error messages when:
-- Required fields are missing
-- Invalid IDs are provided
-- Business rules are violated (e.g., ordering non-existent products)
-
-Example error response:
+1. Account Not Found:
 ```json
 {
   "errors": [
     {
-      "message": "Product not found",
+      "message": "account with ID your_account_id does not exist",
       "path": ["createOrder"]
     }
   ],
-  "data": null
+  "data": {
+    "createOrder": null
+  }
 }
+```
+
+2. Product Not Found:
+```json
+{
+  "errors": [
+    {
+      "message": "one or more products in your order could not be found",
+      "path": ["createOrder"]
+    }
+  ],
+  "data": {
+    "createOrder": null
+  }
+}
+```
+
+3. Invalid Quantity:
+```json
+{
+  "errors": [
+    {
+      "message": "invalid quantity for product product_id_1: quantity must be greater than 0",
+      "path": ["createOrder"]
+    }
+  ],
+  "data": {
+    "createOrder": null
+  }
+}
+```
+
+4. Missing Required Fields:
+```json
+{
+  "errors": [
+    {
+      "message": "accountId is required",
+      "path": ["createOrder"]
+    }
+  ],
+  "data": {
+    "createOrder": null
+  }
+}
+```
+
+## Error Handling Best Practices
+
+1. Always check for both `errors` and `data` in the response
+2. Handle empty arrays gracefully (for queries that return lists)
+3. Provide user-friendly error messages to end users
+4. Implement retry logic for transient errors
+5. Log detailed error information on the client side
+6. Handle pagination errors by resetting to the first page
+7. Validate input before sending to the server
+
+Example Error Handling (JavaScript):
+```javascript
+const handleGraphQLResponse = (response) => {
+  // Check for errors
+  if (response.errors) {
+    // Handle specific error types
+    const error = response.errors[0];
+    switch (true) {
+      case error.message.includes('not found'):
+        // Handle not found error
+        showNotFoundMessage(error.message);
+        break;
+      case error.message.includes('invalid'):
+        // Handle validation error
+        showValidationError(error.message);
+        break;
+      default:
+        // Handle unexpected errors
+        showGeneralError('An unexpected error occurred');
+    }
+    return;
+  }
+
+  // Handle empty results
+  if (Array.isArray(response.data?.products) && response.data.products.length === 0) {
+    showNoResultsMessage();
+    return;
+  }
+
+  // Process successful response
+  processData(response.data);
+};
 ```
 
 ## Tips
 1. Use the "Schema" tab in GraphQL Playground to explore available queries and mutations
 2. Variables can be defined in the "Query Variables" panel
 3. Headers can be added in the "HTTP Headers" panel
-4. Each request can be shared via the "Share" button 
+4. Each request can be shared via the "Share" button
+5. Use pagination for large result sets to improve performance
+6. Include only the fields you need in your queries
+7. Test error scenarios to ensure proper error handling
+8. Use the Network tab to inspect actual HTTP responses
+9. Save commonly used queries in the Playground

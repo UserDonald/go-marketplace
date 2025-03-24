@@ -74,8 +74,8 @@ func (c *Client) GetOrdersForAccount(ctx context.Context, accountID string) ([]O
 	})
 
 	if err != nil {
-		log.Panicln(err)
-		return nil, err
+		log.Printf("Error getting orders for account %s: %v", accountID, err)
+		return []Order{}, nil
 	}
 
 	orders := []Order{}

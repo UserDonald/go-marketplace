@@ -88,12 +88,13 @@ Parameters:
 
 Returns:
 - Array of Account objects
+- Empty array if no accounts found
 
 ### products
 Retrieves a list of products with optional pagination, search, and filtering.
 
 ```graphql
-products(pagination: PaginationInput, query: String, id: String): [Product!]!
+products(pagination: PaginationInput, query: String, id: String, ids: [String!]): [Product!]!
 ```
 
 Parameters:
@@ -102,9 +103,12 @@ Parameters:
   - `take`: Number of records to take
 - `query`: Optional search term to filter products
 - `id`: Optional product ID to filter by
+- `ids`: Optional array of product IDs to filter by
 
 Returns:
 - Array of Product objects
+- Empty array if no products found
+- For `id` or `ids` queries, returns only matching products
 
 ## Mutations
 
@@ -133,7 +137,7 @@ Parameters:
 - `product`: Product input object
   - `name`: Product name
   - `description`: Product description
-  - `price`: Product price
+  - `price`: Product price (must be positive)
 
 Returns:
 - Created Product object or null if creation fails
@@ -150,32 +154,38 @@ Parameters:
   - `accountId`: ID of the account placing the order
   - `products`: Array of products to order
     - `id`: Product ID
-    - `quantity`: Quantity to order
+    - `quantity`: Quantity to order (must be positive)
 
 Returns:
 - Created Order object or null if creation fails
 
+Error Responses:
+- Account not found: `"account with ID {accountId} does not exist"`
+- Product not found: `"one or more products in your order could not be found"`
+- Invalid quantity: `"invalid quantity for product {productId}: quantity must be greater than 0"`
+- General error: `"failed to create order, please try again"`
+
 ## Error Handling
 
-The API follows standard GraphQL error handling practices. Errors are returned in the following format:
+The API follows standard GraphQL error handling practices with user-friendly messages. Errors are returned in the following format:
 
 ```json
 {
   "errors": [
     {
-      "message": "Error message",
-      "path": ["path", "to", "field"],
-      "extensions": {
-        "code": "ERROR_CODE"
-      }
+      "message": "User-friendly error message",
+      "path": ["path", "to", "field"]
     }
-  ]
+  ],
+  "data": {
+    "fieldName": null
+  }
 }
 ```
 
-Common error codes:
-- `NOT_FOUND`: Requested resource not found
-- `INVALID_INPUT`: Invalid input provided
+Common error scenarios:
+- `NOT_FOUND`: Resource not found (account, product)
+- `INVALID_INPUT`: Invalid input (quantity, price)
 - `INTERNAL_ERROR`: Internal server error
 
 ## Rate Limiting
@@ -191,4 +201,7 @@ Currently, there are no rate limits implemented on the API. However, it's recomm
 2. Include only the fields you need in your queries
 3. Handle errors gracefully on the client side
 4. Use appropriate HTTP headers for caching
-5. Consider implementing client-side caching for frequently accessed data 
+5. Consider implementing client-side caching for frequently accessed data
+6. Test error scenarios with invalid inputs
+7. Use the multiple product query (ids parameter) when fetching specific products
+8. Handle empty results appropriately (empty arrays instead of null) 
