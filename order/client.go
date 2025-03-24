@@ -2,11 +2,13 @@ package order
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/donaldnash/go-marketplace/order/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
@@ -15,9 +17,19 @@ type Client struct {
 }
 
 func NewClient(url string) (*Client, error) {
-	conn, err := grpc.Dial(url, grpc.WithInsecure())
+	if url == "" {
+		return nil, fmt.Errorf("order service URL cannot be empty")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	conn, err := grpc.DialContext(ctx, url,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to order service: %v", err)
 	}
 	c := pb.NewOrderServiceClient(conn)
 	return &Client{conn, c}, nil
