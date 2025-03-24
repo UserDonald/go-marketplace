@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.19 AS build
+FROM golang:1.23.0-alpine3.19 AS build
 RUN apk --no-cache add gcc g++ make ca-certificates
 WORKDIR /github.com/donaldnash/go-marketplace
 COPY go.mod go.sum ./
