@@ -9,11 +9,15 @@ The Go Marketplace is built using a microservices architecture, with each servic
 - Implements a GraphQL API using gqlgen
 - Aggregates data from multiple microservices
 - Handles request routing and composition
+- Implements comprehensive error handling
+- Provides structured logging with context
 - Technologies:
   - Go
   - gqlgen
-  - CORS middleware
+  - CORS middleware with secure defaults
   - GraphQL Playground
+  - Graceful shutdown handling
+  - Request timeouts
 
 ### 2. Account Service (Port 8081)
 - Manages user accounts and authentication
@@ -153,20 +157,66 @@ CREATE TABLE order_items (
 
 ## Error Handling and Resilience
 
-1. **Circuit Breaking**
-   - Services implement retry mechanisms
-   - Timeouts are configured for all operations
-   - Failed operations are logged and monitored
+1. **Input Validation**
+   - Context validation for all requests
+   - Required field checks
+   - Data type and format validation
+   - Pagination limits enforcement
+   - Custom validation for domain-specific rules
 
-2. **Data Consistency**
+2. **Error Classification**
+   - Structured error types
+   - Detailed error messages
+   - Error wrapping for context preservation
+   - Clear distinction between user and system errors
+
+3. **Resource Management**
+   - Graceful shutdown handling
+   - Resource cleanup on termination
+   - Connection pooling with proper cleanup
+   - Context cancellation handling
+
+4. **Circuit Breaking**
+   - Services implement retry mechanisms
+   - Timeouts configured for all operations
+   - Failed operations logged with context
+   - Health checks for service dependencies
+
+5. **Data Consistency**
    - Each service maintains its own database
    - Eventual consistency between services
    - Transactions within service boundaries
+   - Validation before data modifications
 
-3. **Service Discovery**
-   - Docker Compose for local development
-   - Service URLs configured via environment variables
-   - Health checks for all services
+## Logging and Monitoring
+
+1. **Structured Logging**
+   - File and line information included
+   - Request context in log entries
+   - Error details and stack traces
+   - Service name and request ID tracking
+   - Performance-critical operation logging
+
+2. **Error Tracking**
+   - Detailed error messages
+   - Error classification and categorization
+   - Stack traces for system errors
+   - Context preservation in error chains
+   - Error frequency monitoring
+
+3. **Metrics**
+   - Request latency tracking
+   - Error rate monitoring
+   - Database connection pool stats
+   - Cache hit/miss rates
+   - Resource usage metrics
+
+4. **Operational Monitoring**
+   - Service health checks
+   - Resource utilization tracking
+   - API endpoint performance
+   - Database query performance
+   - Inter-service communication latency
 
 ## Deployment
 

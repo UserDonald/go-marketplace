@@ -319,15 +319,15 @@ Invalid Input Responses:
 ```graphql
 mutation {
   createOrder(order: {
-    accountId: "your_account_id"
+    accountId: "account1"
     products: [
       {
-        id: "product_id_1"
+        id: "product1"
         quantity: 2
       },
       {
-        id: "product_id_2"
-        quantity: 1
+        id: "product2"
+        quantity: 0  # Products with quantity <= 0 will be filtered out
       }
     ]
   }) {
@@ -350,20 +350,14 @@ Success Response:
   "data": {
     "createOrder": {
       "id": "order1",
-      "totalPrice": 2899.97,
-      "createdAt": "2024-02-20T10:00:00Z",
+      "totalPrice": 1999.98,
+      "createdAt": "2024-03-20T10:30:00Z",
       "products": [
         {
-          "id": "product_id_1",
+          "id": "product1",
           "name": "iPhone 15",
           "price": 999.99,
           "quantity": 2
-        },
-        {
-          "id": "product_id_2",
-          "name": "Samsung Galaxy S24",
-          "price": 899.99,
-          "quantity": 1
         }
       ]
     }
@@ -373,12 +367,12 @@ Success Response:
 
 Error Responses:
 
-1. Account Not Found:
+1. Missing Account ID:
 ```json
 {
   "errors": [
     {
-      "message": "account with ID your_account_id does not exist",
+      "message": "invalid parameter: accountId is required",
       "path": ["createOrder"]
     }
   ],
@@ -388,12 +382,12 @@ Error Responses:
 }
 ```
 
-2. Product Not Found:
+2. No Valid Products (all quantities <= 0):
 ```json
 {
   "errors": [
     {
-      "message": "one or more products in your order could not be found",
+      "message": "invalid parameter: order must contain at least one product with quantity greater than 0",
       "path": ["createOrder"]
     }
   ],
@@ -403,12 +397,12 @@ Error Responses:
 }
 ```
 
-3. Invalid Quantity:
+3. Missing Product ID:
 ```json
 {
   "errors": [
     {
-      "message": "invalid quantity for product product_id_1: quantity must be greater than 0",
+      "message": "invalid parameter: product ID is required at index 0",
       "path": ["createOrder"]
     }
   ],
@@ -418,12 +412,12 @@ Error Responses:
 }
 ```
 
-4. Missing Required Fields:
+4. Account Not Found:
 ```json
 {
   "errors": [
     {
-      "message": "accountId is required",
+      "message": "not found: account with ID account1 does not exist",
       "path": ["createOrder"]
     }
   ],
@@ -432,6 +426,23 @@ Error Responses:
   }
 }
 ```
+
+5. Product Not Found:
+```json
+{
+  "errors": [
+    {
+      "message": "not found: one or more products in your order could not be found",
+      "path": ["createOrder"]
+    }
+  ],
+  "data": {
+    "createOrder": null
+  }
+}
+```
+
+Note: Products with quantity <= 0 will be silently filtered out from the order. If all products have quantity <= 0, an error will be returned.
 
 ## Error Handling Best Practices
 

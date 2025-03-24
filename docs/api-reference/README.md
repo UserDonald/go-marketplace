@@ -167,14 +167,18 @@ Error Responses:
 
 ## Error Handling
 
-The API follows standard GraphQL error handling practices with user-friendly messages. Errors are returned in the following format:
+The API implements comprehensive error handling with detailed messages and proper error classification. Errors are returned in the following format:
 
 ```json
 {
   "errors": [
     {
       "message": "User-friendly error message",
-      "path": ["path", "to", "field"]
+      "path": ["path", "to", "field"],
+      "extensions": {
+        "code": "ERROR_CODE",
+        "details": "Additional error context"
+      }
     }
   ],
   "data": {
@@ -183,10 +187,127 @@ The API follows standard GraphQL error handling practices with user-friendly mes
 }
 ```
 
-Common error scenarios:
-- `NOT_FOUND`: Resource not found (account, product)
-- `INVALID_INPUT`: Invalid input (quantity, price)
-- `INTERNAL_ERROR`: Internal server error
+### Error Types
+
+1. **Validation Errors**
+   - Missing required fields
+   - Invalid data types
+   - Out of range values
+   - Pagination limits exceeded
+
+2. **Resource Errors**
+   - Resource not found
+   - Resource already exists
+   - Resource unavailable
+   - Resource state conflict
+
+3. **Authorization Errors**
+   - Invalid credentials
+   - Insufficient permissions
+   - Token expired
+   - Invalid token
+
+4. **System Errors**
+   - Internal server error
+   - Service unavailable
+   - Database error
+   - Network timeout
+
+### Common Error Scenarios
+
+#### Account Service
+- `ACCOUNT_NOT_FOUND`: Account with specified ID does not exist
+- `INVALID_ACCOUNT_NAME`: Account name is empty or invalid
+- `ACCOUNT_EXISTS`: Account with same name already exists
+- `INVALID_PAGINATION`: Pagination parameters exceed limits
+
+#### Catalog Service
+- `PRODUCT_NOT_FOUND`: Product with specified ID does not exist
+- `INVALID_PRODUCT_PRICE`: Product price must be positive
+- `INVALID_PRODUCT_NAME`: Product name is empty or invalid
+- `INVALID_SEARCH_QUERY`: Search query is empty or invalid
+
+#### Order Service
+- `INVALID_ORDER`: Order validation failed
+  - Empty order
+  - Invalid quantities
+  - Invalid product IDs
+- `ORDER_TOTAL_EXCEEDED`: Order total exceeds maximum allowed
+- `PRODUCT_UNAVAILABLE`: One or more products not available
+- `INVALID_QUANTITY`: Product quantity must be positive
+
+### Error Response Examples
+
+1. **Validation Error**
+```json
+{
+  "errors": [
+    {
+      "message": "Invalid pagination parameters: take must not exceed 100",
+      "path": ["products"],
+      "extensions": {
+        "code": "INVALID_PAGINATION",
+        "details": "Requested take: 150, Maximum allowed: 100"
+      }
+    }
+  ]
+}
+```
+
+2. **Resource Error**
+```json
+{
+  "errors": [
+    {
+      "message": "Product not found",
+      "path": ["createOrder"],
+      "extensions": {
+        "code": "PRODUCT_NOT_FOUND",
+        "details": "Product ID: abc123 does not exist"
+      }
+    }
+  ]
+}
+```
+
+3. **System Error**
+```json
+{
+  "errors": [
+    {
+      "message": "Internal server error",
+      "path": ["createOrder"],
+      "extensions": {
+        "code": "INTERNAL_ERROR",
+        "details": "Request ID: xyz789 for debugging"
+      }
+    }
+  ]
+}
+```
+
+### Error Handling Best Practices
+
+1. **Client-Side**
+   - Always check for error responses
+   - Handle specific error codes appropriately
+   - Display user-friendly error messages
+   - Implement retry logic for transient errors
+   - Log errors with context for debugging
+
+2. **Error Recovery**
+   - Implement proper error recovery strategies
+   - Use exponential backoff for retries
+   - Cache valid responses when appropriate
+   - Maintain consistent UI state during errors
+   - Provide clear user feedback
+
+3. **Monitoring**
+   - Track error frequencies
+   - Monitor error patterns
+   - Set up alerts for critical errors
+   - Analyze error trends
+   - Use request IDs for tracing
 
 ## Rate Limiting
 

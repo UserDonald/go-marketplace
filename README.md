@@ -7,8 +7,10 @@ A modern, production-grade marketplace platform built with microservices archite
 - 🎯 **Modern Architecture**: GraphQL API Gateway with gRPC inter-service communication
 - 🔍 **Full-Text Search**: Elasticsearch-powered product catalog with advanced search capabilities
 - 📦 **Containerized**: Docker-based deployment with multi-stage builds
-- 🛠 **Best Practices**: Clean code architecture and comprehensive error handling
+- 🛠 **Best Practices**: Clean code architecture with comprehensive error handling and validation
 - 🔄 **Scalable Design**: Independent services that can be scaled separately
+- 🔒 **Robust Error Handling**: Detailed error messages, input validation, and graceful recovery
+- 📝 **Structured Logging**: Comprehensive logging with context and file information
 
 ## Tech Stack
 
@@ -88,27 +90,38 @@ go-marketplace/
 - gRPC API for service communication
 - KSUID for ID generation
 - Clean architecture with repository pattern
+- Comprehensive input validation
+- Graceful error handling and recovery
 
 ### Catalog Service (Port 8082)
 - Product management with Elasticsearch
 - Full-text search functionality
 - Multi-match search across product fields
-- Pagination support
+- Pagination support with limits
+- Input validation and error handling
 - gRPC API for service communication
+- Graceful shutdown with resource cleanup
 
 ### Order Service (Port 8083)
 - Order processing and management
 - PostgreSQL for order data
 - Integration with Account and Catalog services
 - Order history tracking
+- Comprehensive validation for orders
+- Product quantity and price validation
 - gRPC API for service communication
+- Graceful error handling
 
 ### GraphQL Gateway (Port 8080)
 - Unified API entry point
 - Interactive GraphQL Playground
 - Service aggregation layer
-- CORS support
-- Error handling and validation
+- CORS support with secure defaults
+- Comprehensive error handling
+- Input validation
+- Detailed error messages
+- Graceful shutdown
+- Request timeouts
 
 ## Development Status
 
@@ -122,21 +135,30 @@ go-marketplace/
 - ✅ Catalog service with Elasticsearch
 - ✅ Order service implementation
 - ✅ Service integration
-- ✅ Error handling
+- ✅ Comprehensive error handling
+  - Input validation
+  - Detailed error messages
+  - Graceful shutdown
+  - Resource cleanup
+  - Context handling
+- ✅ Structured logging
+  - File and line information
+  - Request context
+  - Error details
 - ✅ Documentation
 
 ### In Progress
-- 🔄 Service resilience improvements
-- 🔄 Logging enhancements
+- 🔄 Service monitoring implementation
 - 🔄 Performance optimization
 - 🔄 Integration testing
+- 🔄 Service metrics collection
 
 ### Coming Soon
-- 📅 Service monitoring
 - 📅 Caching layer
 - 📅 Load balancing
 - 📅 Service mesh integration
 - 📅 Kubernetes deployment configuration
+- 📅 Advanced monitoring and alerting
 
 ## Development Setup
 
