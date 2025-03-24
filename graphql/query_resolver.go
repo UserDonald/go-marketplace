@@ -13,11 +13,19 @@ type queryResolver struct {
 }
 
 func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInput, id *string) ([]*Account, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("%w: context is required", ErrInvalidContext)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
 	if id != nil {
-		r, err := r.server.accountClient.GetAccount(ctx, *id)
+		if *id == "" {
+			return nil, fmt.Errorf("%w: id cannot be empty when provided", ErrInvalidParameter)
+		}
+
+		account, err := r.server.accountClient.GetAccount(ctx, *id)
 		if err != nil {
 			log.Printf("Error fetching account with ID %s: %v", *id, err)
 			if strings.Contains(err.Error(), "not found") {
@@ -25,15 +33,35 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInpu
 			}
 			return nil, fmt.Errorf("failed to fetch account: %v", err)
 		}
+
+		if account == nil {
+			return []*Account{}, nil
+		}
+
 		return []*Account{{
-			ID:   r.ID,
-			Name: r.Name,
+			ID:   account.ID,
+			Name: account.Name,
 		}}, nil
 	}
 
-	skip, take := uint64(0), uint64(0)
+	skip, take := uint64(0), uint64(100)
 	if pagination != nil {
-		skip, take = pagination.bounds()
+		if pagination.Skip != nil && *pagination.Skip < 0 {
+			return nil, fmt.Errorf("%w: skip cannot be negative", ErrInvalidParameter)
+		}
+		if pagination.Take != nil && *pagination.Take < 0 {
+			return nil, fmt.Errorf("%w: take cannot be negative", ErrInvalidParameter)
+		}
+		if pagination.Take != nil && *pagination.Take > 100 {
+			return nil, fmt.Errorf("%w: take cannot exceed 100", ErrInvalidParameter)
+		}
+
+		if pagination.Skip != nil {
+			skip = uint64(*pagination.Skip)
+		}
+		if pagination.Take != nil {
+			take = uint64(*pagination.Take)
+		}
 	}
 
 	accountList, err := r.server.accountClient.GetAccounts(ctx, skip, take)
@@ -43,6 +71,10 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInpu
 			return []*Account{}, nil
 		}
 		return nil, fmt.Errorf("failed to fetch accounts: %v", err)
+	}
+
+	if accountList == nil {
+		return []*Account{}, nil
 	}
 
 	accounts := make([]*Account, len(accountList))
@@ -56,53 +88,96 @@ func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInpu
 }
 
 func (r *queryResolver) Products(ctx context.Context, pagination *PaginationInput, query *string, id *string, ids []string) ([]*Product, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("%w: context is required", ErrInvalidContext)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	// Handle single ID lookup
+	// Handle single product lookup by ID
 	if id != nil {
-		r, err := r.server.catalogClient.GetProduct(ctx, *id)
+		if *id == "" {
+			return nil, fmt.Errorf("%w: id cannot be empty when provided", ErrInvalidParameter)
+		}
+
+		product, err := r.server.catalogClient.GetProduct(ctx, *id)
 		if err != nil {
 			log.Printf("Error fetching product with ID %s: %v", *id, err)
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
+			if strings.Contains(err.Error(), "not found") {
 				return []*Product{}, nil
 			}
 			return nil, fmt.Errorf("failed to fetch product: %v", err)
 		}
+
+		if product == nil {
+			return []*Product{}, nil
+		}
+
 		return []*Product{{
-			ID:          r.ID,
-			Name:        r.Name,
-			Description: r.Description,
-			Price:       r.Price,
+			ID:          product.ID,
+			Name:        product.Name,
+			Description: product.Description,
+			Price:       product.Price,
 		}}, nil
 	}
 
-	// Handle multiple IDs lookup
-	if ids != nil && len(ids) > 0 {
-		var products []*Product
-		for _, productID := range ids {
-			r, err := r.server.catalogClient.GetProduct(ctx, productID)
-			if err != nil {
-				log.Printf("Error fetching product with ID %s: %v", productID, err)
-				// Skip products that are not found
-				if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-					continue
-				}
-				return nil, fmt.Errorf("failed to fetch products: %v", err)
-			}
-			products = append(products, &Product{
-				ID:          r.ID,
-				Name:        r.Name,
-				Description: r.Description,
-				Price:       r.Price,
-			})
+	// Handle multiple products lookup by IDs
+	if len(ids) > 0 {
+		if len(ids) > 100 {
+			return nil, fmt.Errorf("%w: cannot request more than 100 products at once", ErrInvalidParameter)
 		}
-		return products, nil
+
+		for i, productID := range ids {
+			if productID == "" {
+				return nil, fmt.Errorf("%w: product ID at index %d cannot be empty", ErrInvalidParameter, i)
+			}
+		}
+
+		products, err := r.server.catalogClient.GetProducts(ctx, 0, 100, ids, "")
+		if err != nil {
+			log.Printf("Error fetching products by IDs: %v", err)
+			if strings.Contains(err.Error(), "not found") {
+				return []*Product{}, nil
+			}
+			return nil, fmt.Errorf("failed to fetch products by IDs: %v", err)
+		}
+
+		if len(products) == 0 {
+			return []*Product{}, nil
+		}
+
+		result := make([]*Product, len(products))
+		for i, p := range products {
+			result[i] = &Product{
+				ID:          p.ID,
+				Name:        p.Name,
+				Description: p.Description,
+				Price:       p.Price,
+			}
+		}
+		return result, nil
 	}
 
-	skip, take := uint64(0), uint64(0)
+	// Handle product search or listing
+	skip, take := uint64(0), uint64(100)
 	if pagination != nil {
-		skip, take = pagination.bounds()
+		if pagination.Skip != nil && *pagination.Skip < 0 {
+			return nil, fmt.Errorf("%w: skip cannot be negative", ErrInvalidParameter)
+		}
+		if pagination.Take != nil && *pagination.Take < 0 {
+			return nil, fmt.Errorf("%w: take cannot be negative", ErrInvalidParameter)
+		}
+		if pagination.Take != nil && *pagination.Take > 100 {
+			return nil, fmt.Errorf("%w: take cannot exceed 100", ErrInvalidParameter)
+		}
+
+		if pagination.Skip != nil {
+			skip = uint64(*pagination.Skip)
+		}
+		if pagination.Take != nil {
+			take = uint64(*pagination.Take)
+		}
 	}
 
 	queryStr := ""
@@ -110,26 +185,29 @@ func (r *queryResolver) Products(ctx context.Context, pagination *PaginationInpu
 		queryStr = *query
 	}
 
-	productList, err := r.server.catalogClient.GetProducts(ctx, skip, take, nil, queryStr)
+	products, err := r.server.catalogClient.GetProducts(ctx, skip, take, nil, queryStr)
 	if err != nil {
 		log.Printf("Error fetching products: %v", err)
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
+		if strings.Contains(err.Error(), "not found") {
 			return []*Product{}, nil
 		}
 		return nil, fmt.Errorf("failed to fetch products: %v", err)
 	}
 
-	var products []*Product
-	for _, a := range productList {
-		products = append(products, &Product{
-			ID:          a.ID,
-			Name:        a.Name,
-			Description: a.Description,
-			Price:       a.Price,
-		})
+	if len(products) == 0 {
+		return []*Product{}, nil
 	}
 
-	return products, nil
+	result := make([]*Product, len(products))
+	for i, p := range products {
+		result[i] = &Product{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       p.Price,
+		}
+	}
+	return result, nil
 }
 
 func (p *PaginationInput) bounds() (uint64, uint64) {
