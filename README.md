@@ -1,103 +1,135 @@
 # Go Marketplace
 
-A microservices-based marketplace application built with Go, featuring GraphQL API gateway and gRPC communication between services.
+A modern, production-grade marketplace platform built with microservices architecture, demonstrating best practices in Go development and distributed systems.
 
-## Project Overview
+## Key Features
 
-This project implements a marketplace system with multiple microservices architecture. It uses modern technologies and best practices including:
+- 🔐 **Secure Authentication**: Complete user account management with JWT tokens
+- 🎯 **Modern Architecture**: GraphQL API Gateway with gRPC inter-service communication
+- 📦 **Containerized**: Docker-based deployment with multi-stage builds
+- 🛠 **Best Practices**: Clean code architecture, error handling, and comprehensive testing
+- 🔄 **Scalable Design**: Independent services that can be scaled separately
 
-- GraphQL API Gateway for client interactions
-- gRPC for inter-service communication
+## Tech Stack
+
+### Core Technologies
+- Go 1.24.1
+- GraphQL (gqlgen) for API Gateway
+- gRPC for service communication
 - PostgreSQL for data persistence
-- Docker for containerization
-- Microservices architecture
+- Docker & Docker Compose
 
-## Services
+### Key Dependencies
+- github.com/99designs/gqlgen
+- google.golang.org/grpc
+- github.com/lib/pq
 
-### 1. Account Service (Implemented)
-- User account management
-- Authentication and authorization
-- gRPC-based service
-- PostgreSQL database for user data
-- Features:
-  - User registration
-  - User authentication
-  - Account management
+## Quick Setup
 
-### 2. Catalog Service (Planned)
-- Product catalog management
-- Features to be implemented:
-  - Product listing
-  - Product categories
-  - Product search
-  - Inventory management
+### Prerequisites
+- Go 1.24.1+
+- Docker & Docker Compose
+- Git
 
-### 3. Order Service (Planned)
-- Order processing and management
-- Features to be implemented:
-  - Order creation
-  - Order status tracking
-  - Order history
-  - Payment integration
+### Run the Project
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/go-marketplace.git
+cd go-marketplace
 
-### 4. GraphQL Gateway (In Progress)
-- Central API gateway
-- GraphQL schema and resolvers
-- Client-facing API
-- Features:
-  - Account mutations and queries
-  - Integration with other services (planned)
+# Start all services
+docker-compose up -d
 
-## Technology Stack
+# View service logs
+docker-compose logs -f
 
-- **Language:** Go 1.24.1
-- **API Gateway:** GraphQL with gqlgen
-- **Service Communication:** gRPC
-- **Database:** PostgreSQL
-- **Containerization:** Docker
-- **Dependencies:**
-  - github.com/99designs/gqlgen
-  - google.golang.org/grpc
-  - github.com/lib/pq
-  - Other utility packages
+# Stop services
+docker-compose down
+```
+
+### Access Points
+- Account Service: http://localhost:8080
+  - Authentication endpoints
+  - User management API
+- GraphQL Playground: http://localhost:8081 (coming soon)
+  - Interactive API documentation
+  - Query/Mutation testing
 
 ## Project Structure
-
 ```
-.
-├── account/           # Account service
-│   ├── cmd/          # Service entry points
-│   ├── pb/           # Protocol buffer definitions
-│   ├── repository.go # Data access layer
-│   ├── server.go     # gRPC server implementation
-│   └── service.go    # Business logic
-├── catalog/          # Catalog service (planned)
-├── order/           # Order service (planned)
-├── graphql/         # GraphQL gateway
-│   ├── schema.graphql    # GraphQL schema
-│   ├── resolvers/        # GraphQL resolvers
-│   └── generated/        # Generated GraphQL code
-└── docker-compose.yaml   # Docker composition
+go-marketplace/
+├── account/          # Authentication & user management
+│   ├── cmd/         # Service entry points
+│   ├── pb/          # Protocol buffer definitions
+│   ├── repository/  # Data access layer
+│   └── service/     # Business logic
+├── catalog/         # Product management service
+├── order/          # Order processing service
+├── graphql/        # API gateway
+│   ├── schema/     # GraphQL schema definitions
+│   └── resolvers/  # Query/Mutation implementations
+└── docker-compose.yaml
 ```
 
-## Current Status
+## Service Details
+
+### Account Service (Complete)
+- User authentication with JWT
+- Password hashing and validation
+- User profile management
+- gRPC API for internal service communication
+- PostgreSQL for user data persistence
+
+### GraphQL Gateway (In Progress)
+- Unified API entry point
+- Type-safe schema generation
+- Authentication middleware
+- Service aggregation layer
+
+### Catalog Service (In Development)
+- Product CRUD operations
+- Category management
+- Search functionality
+- Inventory tracking
+
+### Order Service (Planned)
+- Order processing workflow
+- Payment integration
+- Order status management
+- History tracking
+
+## Development Status
 
 ### Completed
-- Basic project structure and architecture
-- Account service with gRPC implementation
-- GraphQL gateway setup
+- Account service implementation
+- Basic project architecture
 - Docker configuration
-- Database schema for account service
+- Database schema and migrations
+- Authentication flow
 
 ### In Progress
-- GraphQL resolvers implementation
+- GraphQL gateway implementation
+- Catalog service development
 - Service integration
 - Testing infrastructure
 
-### To Be Implemented
-- Catalog service
+### Coming Soon
 - Order service
-- Authentication and authorization
 - Service discovery
-- Logging and monitoring
+- Monitoring and logging
 - CI/CD pipeline
+- Kubernetes deployment
+
+## Troubleshooting
+
+### Common Issues
+- **Port Conflicts**: Ensure ports 8080 (Account), 8081 (GraphQL), and 5432 (PostgreSQL) are available
+- **Database**: Default credentials in docker-compose.yaml
+- **Logs**: Use `docker-compose logs -f [service]` for debugging
+
+### Database Access
+- Host: localhost
+- Port: 5432
+- Username: postgres
+- Password: postgres
+- Database: postgres
