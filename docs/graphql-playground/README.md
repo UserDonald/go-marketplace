@@ -291,7 +291,7 @@ Invalid Input Responses:
 {
   "errors": [
     {
-      "message": "price must be greater than 0",
+      "message": "price cannot be negative",
       "path": ["createProduct"]
     }
   ],

@@ -52,8 +52,8 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, in ProductInput) (
 	if in.Description == "" {
 		return nil, fmt.Errorf("description is required")
 	}
-	if in.Price <= 0 {
-		return nil, fmt.Errorf("price must be greater than 0")
+	if in.Price < 0 {
+		return nil, fmt.Errorf("price cannot be negative")
 	}
 
 	p, err := r.server.catalogClient.PostProduct(ctx, in.Name, in.Description, in.Price)
