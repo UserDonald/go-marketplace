@@ -10,7 +10,7 @@ import (
 )
 
 type Config struct {
-	DatabaseURL string `envconfig:"DATABASE_URL"`
+	ElasticsearchURL string `envconfig:"ELASTICSEARCH_URL"`
 }
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 
 	var r catalog.Repository
 	retry.ForeverSleep(2*time.Second, func(_ int) error {
-		r, err = catalog.NewElasticRepository(cfg.DatabaseURL)
+		r, err = catalog.NewElasticRepository(cfg.ElasticsearchURL)
 		if err != nil {
 			log.Println(err)
 		}
