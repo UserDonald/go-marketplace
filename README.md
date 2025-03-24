@@ -79,18 +79,23 @@ go-marketplace/
 - User profile management
 - gRPC API for internal service communication
 - PostgreSQL for user data persistence
+- Containerized with Docker
+- Clean architecture with repository pattern
 
-### GraphQL Gateway (In Progress)
+### Catalog Service (In Development)
+- Product CRUD operations with Elasticsearch
+- Full-text search functionality
+- Pagination support
+- gRPC API for internal service communication
+- Clean architecture with repository pattern
+- Containerized with Docker
+- Multi-match search across product names and descriptions
+
+### GraphQL Gateway (Planned)
 - Unified API entry point
 - Type-safe schema generation
 - Authentication middleware
 - Service aggregation layer
-
-### Catalog Service (In Development)
-- Product CRUD operations
-- Category management
-- Search functionality
-- Inventory tracking
 
 ### Order Service (Planned)
 - Order processing workflow
@@ -103,22 +108,32 @@ go-marketplace/
 ### Completed
 - Account service implementation
 - Basic project architecture
-- Docker configuration
+- Docker configuration with health checks
 - Database schema and migrations
 - Authentication flow
+- Catalog service core functionality
+- Elasticsearch integration
+- Proto file organization and generation
+- Development environment setup
+- Dependency management with Go modules
 
 ### In Progress
-- GraphQL gateway implementation
-- Catalog service development
-- Service integration
-- Testing infrastructure
+- Catalog service testing
+- Service integration testing
+- Docker container orchestration
+- Error handling improvements
+- Documentation updates
 
 ### Coming Soon
-- Order service
+- GraphQL gateway implementation
+- Order service development
 - Service discovery
 - Monitoring and logging
 - CI/CD pipeline
 - Kubernetes deployment
+- Integration tests
+- Performance optimization
+- API documentation
 
 ## Development Setup
 
