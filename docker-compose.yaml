@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.8"
 
 services:
   account:
@@ -6,41 +6,27 @@ services:
       context: .
       dockerfile: account/app.dockerfile
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@account_db:5432/postgres?sslmode=disable
+      - DATABASE_URL=postgresql://postgres:postgres@account_db:5432/account?sslmode=disable
     depends_on:
       account_db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8081:8080"
 
   account_db:
-    build:
-      context: ./account
-      dockerfile: db.dockerfile
+    image: postgres:15-alpine
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=account
+    ports:
+      - "5431:5432"
+    volumes:
+      - account_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
-      retries: 5
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'status.*green\\|status.*yellow'"]
-      interval: 10s
-      timeout: 10s
       retries: 5
 
   catalog:
@@ -48,17 +34,78 @@ services:
       context: .
       dockerfile: catalog/app.dockerfile
     environment:
-      - DATABASE_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://catalog_db:9200
     depends_on:
-      elasticsearch:
+      catalog_db:
         condition: service_healthy
     ports:
-      - "8081:8080"
+      - "8082:8080"
+
+  catalog_db:
+    image: elasticsearch:7.17.9
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - catalog_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'status.*green'"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  order:
+    build:
+      context: .
+      dockerfile: order/app.dockerfile
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@order_db:5432/order?sslmode=disable
+      - ACCOUNT_SERVICE_URL=account:8080
+      - CATALOG_SERVICE_URL=catalog:8080
+    depends_on:
+      order_db:
+        condition: service_healthy
+      account:
+        condition: service_started
+      catalog:
+        condition: service_started
+    ports:
+      - "8083:8080"
+
+  order_db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=order
+    ports:
+      - "5433:5432"
+    volumes:
+      - order_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  graphql:
+    build:
+      context: .
+      dockerfile: graphql/app.dockerfile
+    environment:
+      - ACCOUNT_SERVICE_URL=account:8080
+      - CATALOG_SERVICE_URL=catalog:8080
+      - ORDER_SERVICE_URL=order:8080
+    depends_on:
+      - account
+      - catalog
+      - order
+    ports:
+      - "8080:8080"
 
 volumes:
-  elasticsearch_data:
-
-# order:
-# graphql:
-# catalog_db:
-# order_db:
+  account_data:
+  catalog_data:
+  order_data:
